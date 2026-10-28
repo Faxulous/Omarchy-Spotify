@@ -134,8 +134,9 @@ omarchy shell -q quickshell.spotify.player volumeDown
 Each step is 5%, the same as Ctrl+Up / Ctrl+Down. This changes Spotify's own
 volume, including speakers, not the computer's output level.
 
-Click the Spotify icon on the left side of the bar. The mini-player asks you
-to **Set up and continue**, then Spotify sign-in finishes in your browser. You
+First [create your Spotify Developer app](#create-your-spotify-developer-app)
+and set its client ID. Then click the Spotify icon on the left side of the
+bar. The mini-player asks you to **Set up and continue**, then Spotify sign-in finishes in your browser. You
 can move the widget later with Omarchy's bar controls.
 
 Local playback installs an exact-version backend only after its GitHub build
@@ -144,24 +145,35 @@ still match that tagged source. If verification is unavailable, setup builds
 the locked Rust source locally or offers Omarchy's packaged `spotifyd` fallback
 instead of executing an unverified download.
 
-## Seeing "Spotify is busy." or slow searches?
+## Create your Spotify Developer app
 
-The plugin's Spotify Web API client ID is shared by every install worldwide,
-and Spotify rate-limits requests **per app**, not per user. When that shared
-quota runs out you see `Spotify is busy. Try again in N seconds.` and searches
-that stall even though nothing is wrong on your side.
+Sign-in needs a Spotify Developer app of your own. The client ID the plugin
+ships with is ncspot's, and ncspot has since moved its registered callback to
+`/ncspot_login` and asked other projects not to use it, so signing in with it
+now fails with `redirect_uri: Not matching configuration` (#120).
 
-You can use a personal [Spotify Developer app](https://developer.spotify.com/dashboard)
-with a separate quota. This does not provide unlimited requests or restore restricted endpoints.
+1. Open the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   and choose **Create app**. Any name and description will do.
+2. Add `http://127.0.0.1:8989/login` as a redirect URI, exactly as written: no
+   trailing slash, and `127.0.0.1` rather than `localhost`.
+3. Under **Which API/SDKs are you planning to use?**, select **Web API**, then
+   save.
+4. A new app starts in development mode, which only lets in allowlisted users.
+   Open the app's **User Management** tab and add the email address of your
+   Spotify account.
+5. Copy the app's **Client ID** into **Spotify Developer app client ID** in the
+   plugin settings. Invalid IDs produce an error.
+6. Choose **Continue with Spotify** and approve the app in your browser.
+   Changing the ID clears the current session and account data; stored
+   sessions are isolated by client ID.
 
-1. Add `http://127.0.0.1:8989/login` as the app's redirect URI.
-2. Set **Spotify Developer app client ID** in the plugin settings. Leave it empty
-   to use the shipped app. Invalid IDs produce an error.
-3. Authorize the selected app. Changing the ID clears the current session and
-   account data; stored sessions are isolated by client ID.
-
-Development apps require an eligible Premium owner and allowlisted users, and
-have endpoint restrictions. See Spotify's [quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
+Your own app also has its own request quota. Spotify rate-limits requests
+**per app**, so a shared client ID means every install draws on the same
+quota, which shows up as `Spotify is busy. Try again in N seconds.` and
+stalled searches. A personal app does not provide unlimited requests or
+restore restricted endpoints: development apps require an eligible Premium
+owner and allowlisted users, and have endpoint restrictions. See Spotify's
+[quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes).
 The local Connect authorization remains separate.
 
 ## Remove it completely
